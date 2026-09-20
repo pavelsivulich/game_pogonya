@@ -29,7 +29,7 @@ const clamp01 = (v, def) => {
 const CURVE_A = 100;
 const volumeCurve = (v) => (Math.pow(CURVE_A, v) - 1) / (CURVE_A - 1);
 let sfxVol = clamp01(localStorage.getItem('fvd.sfxVol'), 1);
-let musicVol = clamp01(localStorage.getItem('fvd.musicVol'), 1);
+let musicVol = clamp01(localStorage.getItem('fvd.musicVol'), 0.5);
 
 function audioCtx() {
   if (!ctx) {
