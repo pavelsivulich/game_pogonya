@@ -1,0 +1,136 @@
+:root { --ink:#0a0a0a; --paper:#f4f1ea; --blood:#e63946; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--ink); color:var(--paper);
+       font:13px/1.4 ui-monospace,Menlo,Consolas,monospace; }
+#app { max-width:820px; margin:0 auto; padding:12px; }
+#hud { display:flex; gap:16px; padding:6px 0; border-bottom:1px solid #2a2a2a; }
+#hud-phase { color:var(--blood); font-weight:700; }
+canvas { display:block; margin:12px 0; background:var(--ink);
+         border:1px solid #2a2a2a; image-rendering:pixelated; cursor:crosshair; }
+/* v0.15.1: консоль скрыта по умолчанию; кнопка ›_ над полем */
+#log { display:none; height:160px; overflow:auto; margin:0; padding:8px;
+       background:#000; border:1px solid #2a2a2a; color:#8a8a8a; font-size:11px; }
+#log.visible { display:block; }
+
+/* ---- Экранные оверлеи (GDD §12) ---- */
+#screen { position:absolute; inset:0; display:none; align-items:center;
+          justify-content:center; background:rgba(10,10,10,.92); z-index:5; }
+#screen.visible { display:flex; }
+.screen-box { text-align:center; max-width:560px; padding:24px;
+              border:1px solid #2a2a2a; background:var(--ink); }
+.screen-title { font-size:26px; letter-spacing:3px; margin:0 0 24px; }
+.screen-title .vs { color:var(--blood); }
+.screen-sub { font-size:18px; letter-spacing:2px; margin:0 0 16px; color:var(--blood); }
+.screen-role { margin:8px 0; }
+.screen-role .win { color:var(--paper); }
+.screen-role .lose { color:var(--blood); }
+.role-fugitive { color:var(--paper); }
+.role-detective { color:var(--blood); }
+.screen-hint { color:#8a8a8a; font-size:12px; margin:8px 0 20px; }
+.screen-rules { text-align:left; font-size:12px; color:#c9c6bf;
+                max-height:320px; overflow:auto; margin-bottom:16px; }
+.screen-rules p { margin:8px 0; }
+.medal { font-size:20px; letter-spacing:2px; margin:18px 0; }
+.screen-btn { display:block; margin:10px auto 0; padding:8px 22px;
+              font:inherit; letter-spacing:1px; cursor:pointer;
+              background:var(--ink); color:var(--paper); border:1px solid var(--paper); }
+.screen-btn:hover { background:var(--paper); color:var(--ink); }
+.screen-btn.primary { border-color:var(--blood); color:var(--blood); }
+.screen-btn.primary:hover { background:var(--blood); color:var(--ink); }
+
+/* ---- Настройки звука (v0.13.0) ---- */
+#sound-btn { position:absolute; top:4px; right:4px; z-index:6;
+             width:30px; height:30px; padding:0; cursor:pointer;
+             font:15px/1 ui-monospace,Menlo,Consolas,monospace;
+             background:var(--ink); color:var(--paper); border:1px solid #2a2a2a; }
+#sound-btn:hover, #sound-btn.active { background:var(--paper); color:var(--ink);
+             border-color:var(--paper); }
+/* v0.15.1: переключатель консоли — слева от ♪ */
+#log-btn { position:absolute; top:4px; right:38px; z-index:6;
+           width:30px; height:30px; padding:0; cursor:pointer;
+           font:11px/1 ui-monospace,Menlo,Consolas,monospace;
+           background:var(--ink); color:var(--paper); border:1px solid #2a2a2a; }
+#log-btn:hover, #log-btn.active { background:var(--paper); color:var(--ink);
+           border-color:var(--paper); }
+/* v0.16.3: кнопка «?» (правила) — слева от ›_ */
+#help-btn { position:absolute; top:4px; right:72px; z-index:6;
+           width:30px; height:30px; padding:0; cursor:pointer;
+           font:15px/1 ui-monospace,Menlo,Consolas,monospace;
+           background:var(--ink); color:var(--paper); border:1px solid #2a2a2a; }
+#help-btn:hover, #help-btn.active { background:var(--paper); color:var(--ink);
+           border-color:var(--paper); }
+#sound-panel { position:absolute; top:40px; right:4px; z-index:6; display:none;
+               width:230px; padding:12px 14px;
+               background:var(--ink); border:1px solid #2a2a2a; }
+#sound-panel.visible { display:block; }
+.sound-row { display:flex; align-items:center; gap:8px; margin:8px 0; }
+.sound-row label { width:64px; font-size:11px; letter-spacing:1px; color:#8a8a8a; }
+.sound-row output { width:38px; text-align:right; font-size:11px; color:var(--paper); }
+.sound-row input[type=range] { flex:1; accent-color:var(--blood); cursor:pointer; }
+.sound-hint { margin:6px 0 0; font-size:10px; color:#5a5a5a; }
+
+/* ---- Заставка (v0.15.2) ---- */
+/* Три слоя одного размера наложены друг на друга; позиционирование не нужно.
+   v0.15.1: однотонная подложка — под анимацией ничего не просвечивает. */
+#intro { position:absolute; inset:0; z-index:7; overflow:hidden;
+         display:flex; align-items:center; justify-content:center;
+         background:var(--ink); }
+#intro.hidden { display:none; }
+.intro-layer { position:absolute; inset:0; width:100%; height:100%;
+               object-fit:cover; display:block; }
+/* 1. фон — canvas с попиксельным появлением (рисуется в JS) */
+/* 2. детектив — fade-in по классу .d-in */
+.intro-detective { opacity:0; transition:opacity 2.5s ease; }
+#intro.d-in .intro-detective { opacity:1; }
+/* 3. преступник — проявление справа налево (левый край clip'а едет влево) */
+.intro-criminal { clip-path:inset(0 0 0 100%);
+                  transition:clip-path 7.9s cubic-bezier(.3,.7,.3,1); }
+#intro.c-in .intro-criminal { clip-path:inset(0 0 0 0); }
+/* логотип: появляется за 1 с до кнопок с глитчем (671×436, contain по центру) */
+.intro-logo { position:absolute; left:50%; top:38%; transform:translate(-50%,-50%);
+              width:70%; max-height:60%; object-fit:contain; display:block;
+              opacity:0; z-index:1; pointer-events:none; }
+#intro.l-in .intro-logo { opacity:1; animation:intro-glitch 1s steps(1,end) 1 both; }
+/* Глитч: жёсткий красный через SVG-фильтр #glitch-red (G/B := 0),
+   рваные полосы clip-path, крупные скачки по X/Y, skew, scale.
+   Финал (100%) — оригинальные цвета логотипа. */
+@keyframes intro-glitch {
+  0%   { clip-path:inset(0 0 88% 0);  transform:translate(-50%,-50%) translate(-34px,6px) skewX(-8deg) scale(1.04);
+         filter:url(#glitch-red) brightness(1.4) drop-shadow(6px 0 0 rgba(230,57,70,.9)); }
+  8%   { clip-path:inset(62% 0 8% 0); transform:translate(-50%,-50%) translate(28px,-8px) skewX(6deg) scale(1.02);
+         filter:url(#glitch-red) brightness(1.2) drop-shadow(-8px 0 0 rgba(230,57,70,.9)); }
+  16%  { clip-path:inset(18% 0 58% 0);transform:translate(-50%,-50%) translate(-22px,10px) skewX(-5deg);
+         filter:url(#glitch-red) drop-shadow(10px 0 0 rgba(230,57,70,.8)); }
+  24%  { clip-path:inset(78% 0 4% 0); transform:translate(-50%,-50%) translate(30px,-4px) skewX(9deg) scale(1.05);
+         filter:url(#glitch-red) brightness(1.6) drop-shadow(-6px 0 0 rgba(230,57,70,.9)); }
+  32%  { clip-path:inset(40% 0 42% 0);transform:translate(-50%,-50%) translate(-26px,0) skewX(-4deg);
+         filter:url(#glitch-red) drop-shadow(8px 0 0 rgba(230,57,70,.8)); }
+  40%  { clip-path:inset(6% 0 76% 0); transform:translate(-50%,-50%) translate(18px,8px) skewX(3deg) scale(0.98);
+         filter:url(#glitch-red) brightness(1.3) drop-shadow(-10px 0 0 rgba(230,57,70,.9)); }
+  48%  { clip-path:inset(55% 0 22% 0);transform:translate(-50%,-50%) translate(-16px,-6px) skewX(-6deg);
+         filter:url(#glitch-red) drop-shadow(5px 0 0 rgba(230,57,70,.8)); }
+  56%  { clip-path:inset(28% 0 60% 0);transform:translate(-50%,-50%) translate(14px,4px) skewX(2deg) scale(1.03);
+         filter:url(#glitch-red) brightness(1.5) drop-shadow(-7px 0 0 rgba(230,57,70,.9)); }
+  64%  { clip-path:inset(85% 0 2% 0); transform:translate(-50%,-50%) translate(-10px,-3px);
+         filter:url(#glitch-red) drop-shadow(4px 0 0 rgba(230,57,70,.8)); }
+  72%  { clip-path:inset(12% 0 70% 0);transform:translate(-50%,-50%) translate(8px,2px) skewX(-2deg);
+         filter:url(#glitch-red) brightness(1.2) drop-shadow(-5px 0 0 rgba(230,57,70,.7)); }
+  80%  { clip-path:inset(48% 0 30% 0);transform:translate(-50%,-50%) translate(-5px,0);
+         filter:url(#glitch-red) drop-shadow(3px 0 0 rgba(230,57,70,.7)); }
+  88%  { clip-path:inset(0 0 0 0);    transform:translate(-50%,-50%) translate(3px,-1px);
+         filter:url(#glitch-red) drop-shadow(2px 0 0 rgba(230,57,70,.5)); }
+  100% { clip-path:inset(0 0 0 0);    transform:translate(-50%,-50%); filter:none; }
+}
+.intro-menu { position:absolute; left:0; right:0; bottom:314px; z-index:1;
+              text-align:center; opacity:0; transition:opacity .8s ease; }
+#intro.menu-in .intro-menu { opacity:1; }
+/* v0.15.5: чёрный экран «СТАРТ» — клик запускает заставку и intro.mp3 */
+.intro-start { position:absolute; inset:0; z-index:3; cursor:pointer;
+               display:flex; align-items:center; justify-content:center;
+               background:var(--ink); transition:opacity .6s ease; }
+.intro-start span { color:var(--paper); font-size:28px; letter-spacing:10px;
+               animation:start-pulse 1.6s ease-in-out infinite; }
+.intro-start.gone { opacity:0; pointer-events:none; }
+@keyframes start-pulse { 0%,100% { opacity:.45; } 50% { opacity:1; } }
+/* v0.15.3: кнопки заставки — крупнее и с толстой рамкой */
+.intro-menu .screen-btn { border-width:4px; font-size:20px; padding:10px 28px; }

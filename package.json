@@ -1,0 +1,16 @@
+{
+  "name": "fugitive-vs-detective",
+  "version": "0.10.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/path-validator.test.js && node tests/echo.test.js && node tests/blockade.test.js && node tests/fugitive-ai.test.js && node tests/detective-ai.test.js && node tests/map-generator.test.js && node tests/blockade-hit.test.js",
+    "test:paths": "node tests/path-validator.test.js",
+    "test:echo": "node tests/echo.test.js",
+    "test:blockade": "node tests/blockade.test.js",
+    "test:ai": "node tests/fugitive-ai.test.js",
+    "test:detective": "node tests/detective-ai.test.js",
+    "test:gen": "node tests/map-generator.test.js",
+    "test:blockade-hit": "node tests/blockade-hit.test.js"
+  }
+}
