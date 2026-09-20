@@ -14,6 +14,10 @@ let enabled = true;
 let sfxBus = null;
 let musicBus = null;
 const clamp01 = (v, def) => {
+  // null/'' = настроек ещё нет (первый запуск) — возвращаем дефолт.
+  // Важно: Number(null) === 0 (и это finite!), без проверки
+  // свежий браузер получал громкость 0 вместо 1.
+  if (v === null || v === '') return def;
   const n = Number(v);
   return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : def;
 };
